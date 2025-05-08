@@ -1,18 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 
-const initialItems = [
-  { id: 1, description: "Passports", quantity: 2, packed: false },
-  { id: 2, description: "Socks", quantity: 12, packed: true },
-  { id: 3, description: "Charger", quantity: 5, packed: true },
-  { id: 4, description: "underpants", quantity: 15, packed: true },
-];
+
 
 function App() {
+
+const  [items, setItems] = useState([])
+
+function addNewItem(item){
+  setItems((prevItems) => [...prevItems, item])
+}
+
+function deleteItem(id){
+  setItems(items => items.filter(item => item.id !== id))
+}
+
+function handleChecked(id){
+  setItems((items) => items.map((item) => item.id === id ? {...item, packed: !item.packed} : item))
+}
+
   return (
     <div className="app">
       <Logo />
-      <Form />
-      <PackingList />
+      <Form addNewItem={addNewItem}/>
+      <PackingList items={items} deleteItem={deleteItem} handleChecked={handleChecked}/>
       <Stats />
     </div>
   );
@@ -24,24 +34,28 @@ function Logo() {
 
 
 
-function Form() {
+function Form({addNewItem}) {
 
 const [inputValue, setInputValue] = React.useState('')
 const [quantity, setQuantity] = React.useState(1)
 
 function handleSubmit(e){
   e.preventDefault()
+ 
+
 
   if(!inputValue) return;
 
   const newItem ={
-    inputValue, quantity, packed: false, id: Date.now()
+    description: inputValue, quantity, packed: false, id: Date.now()
   }
   console.log(newItem);
   
+  addNewItem(newItem)
 
   setInputValue('')
   setQuantity(1)
+ 
 
 
 }
@@ -63,25 +77,26 @@ function handleSubmit(e){
   );
 }
 
-function PackingList() {
+function PackingList({items, deleteItem, handleChecked}) {
   return (
     <div  className="list">
       <ul>
-      {initialItems.map((item) => (
-        <Item item={item} key={item.id}/>
+      {items.map((item) => (
+        <Item item={item} key={item.id} deleteItem={deleteItem} handleChecked={handleChecked}/>
         ))}
     </ul>
     </div>
   )
 }
 
-function Item({item}){
+function Item({item, deleteItem, handleChecked}){
   return(
     <li>
+      <input type="checkbox" value={item.packed} onChange={() => {handleChecked(item.id)}}/>
       <span style={item.packed ? {textDecoration: 'line-through'} : {}}>
       {item.quantity} {item.description}
       </span>
-      <button>❌</button>
+      <button onClick={() => deleteItem(item.id)}>❌</button>
     </li>
   )
 }
